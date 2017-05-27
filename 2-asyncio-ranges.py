@@ -60,7 +60,7 @@ def parse_content_range(value):
 async def stream_lines(_url, byte_range):
     """
     Performs a range HTTP streaming request and produces bytestrings
-    for every line in the response body.
+    + line completion mark for every line in the response body.
     """
     url = urllib.parse.urlsplit(_url)
     reader, writer = await open_connection(url)
@@ -102,12 +102,14 @@ async def stream_lines(_url, byte_range):
 
         try:
             line = await reader.readuntil()
+            closed = True
         except asyncio.IncompleteReadError as e:
             # We've reached the end of the stream and no newline has
             # been found, return the partial line in the buffer, it
             # will be handled downstream.
             line = e.partial
-        yield line
+            closed = False
+        yield line, closed
 
         content_read += len(line)
         if content_read >= content_size:
@@ -120,27 +122,28 @@ async def stream_lines(_url, byte_range):
 async def produce_rows(url, byte_range):
     """
     Consumes CSV lines as bytestrings from the HTTP stream
-    and produces lists of CSV columns.
+    and produces lists of CSV columns + line completion mark.
     """
     reader = stream_lines(url, byte_range)
+    first_producer = byte_range[0] == 0
 
     i = 0
-    async for line in reader:
+    async for line, closed in reader:
         i += 1
         # First and last rows of each chunk (except first row of first
         # chunk) are potentially cut by the range request, return them
         # raw for downstream to count as partial rows needing reconciliation.
-        if byte_range[0] > 0 and i == 1 or not line.endswith(b'\n'):
-            yield line
+        if (not first_producer and i == 1) or not closed:
+            yield line, False
         else:
-            yield line.rstrip().split(b',')
+            yield line.rstrip().split(b','), True
 
 async def avg_column_index(avg_field, producer):
     """
     Consumes the first CSV row in the stream and returns the index
     of the field we want to calculate an average for.
     """
-    async for row in producer:
+    async for row, _ in producer:
         return row.index(bytes(avg_field, 'latin-1'))
 
 async def aggregate_chunk(producer, avg_idx):
@@ -153,9 +156,8 @@ async def aggregate_chunk(producer, avg_idx):
     partial_lines = ['', '']
     n_lines = 0
     avg_sum = 0
-    async for row in producer:
-        # Partial lines are streamed as bytes, not lists.
-        if isinstance(row, bytes):
+    async for row, complete in producer:
+        if not complete:
             partial_lines[0 if n_lines == 0 else 1] = row
         else:
             n_lines += 1
