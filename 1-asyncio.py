@@ -78,7 +78,8 @@ async def aggregate(url, avg_field):
     print(f'Average tip amount: {total_tip_amount / total_lines}')
 
 
-args = parse_args()
-loop = asyncio.get_event_loop()
-loop.run_until_complete(aggregate(args.url, args.average))
-loop.close()
+if __name__ == '__main__':
+    args = parse_args()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(aggregate(args.url, args.average))
+    loop.close()

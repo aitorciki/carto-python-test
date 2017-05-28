@@ -229,7 +229,8 @@ async def execute(url, concurrency, avg_field):
     print(f'Average {avg_field}: {avg_sum / n_lines}')
 
 
-args = parse_args()
-loop = asyncio.get_event_loop()
-loop.run_until_complete(execute(args.url, args.concurrency, args.average))
-loop.close()
+if __name__ == '__main__':
+    args = parse_args()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(execute(args.url, args.concurrency, args.average))
+    loop.close()
