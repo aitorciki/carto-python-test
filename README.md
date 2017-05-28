@@ -5,15 +5,15 @@ See [https://gist.github.com/jorgesancha/2a8027e5a89a2ea1693d63a45afdd8b6](https
 Reproduced here for convenience:
 
 > Build the following and make it run as fast as you possibly can using Python 3 (vanilla). The faster it runs, the more you will impress us!
-> 
+>
 > Your code should:
-> 
+>
 > * Download this 2.2GB file: https://s3.amazonaws.com/carto-1000x/data/yellow\_tripdata_2016-01.csv
 > * Count the lines in the file
 > * Calculate the average value of the tip_amount field.
-> 
+>
 > All of that in the most efficient way you can come up with.
-> 
+>
 > That's it. Make it fly!
 
 ## Approach
@@ -36,7 +36,7 @@ I tested if `3` was a valid approach by downloading 4 copies of the file concurr
 
 Since only Python 3 and its standard library are to be used, and I want streaming and concurrent downloads, I've chosen `asyncio` for my solution.
 
-A first script, `1-asyncio.py`, implements a streaming client. Lines are consumed from the HTTP stream then produced as bytestrings, consumed by a generator that produces Python lists out of them, finally consumed by an aggregator. This solution beats a naive `wget` + `head` + `awk` script but not by much. Still an interesting contender since these tools are super optimized and we're using Python to beat them.
+A first script, `1-asyncio.py`, implements a streaming client. Lines are consumed from the HTTP stream then produced as bytestrings, consumed by a generator that produces Python lists out of them, finally consumed by an aggregator. This solution beats a naive `wget` + `awk` script but not by much. Still an interesting contender since these tools are super optimized and we're using Python to beat them.
 
 The second script, `2-asyncio-ranges.py`, adds HTTP range requests to the first approach. By default 4 concurrent processors are spawned (this saturates my link, but can be configured to make better use of better networks), they aggregate lines for their file chunk, that are then combined into the final results. This solution is way faster than the naive shell approach or the non-range streaming one.
 
@@ -80,9 +80,9 @@ optional arguments:
 
 ```bash
 $ time ./0-shell.sh
- 10906859 # haven't even tried to ignore header line, might slow it down
-1.75066
-./0-shell.sh  27.70s user 20.54s system 23% cpu 3:26.00 total
+Total lines: 10906858
+Average tip_amount: 1.75066
+./0-shell.sh  25.52s user 20.27s system 21% cpu 3:28.88 total
 
 $ time python 1-asyncio.py
 Total lines: 10906858
