@@ -75,7 +75,7 @@ async def aggregate(url, avg_field):
         total_tip_amount += float(row[idx])
 
     print(f'Total lines: {total_lines}')
-    print(f'Average tip amount: {total_tip_amount / total_lines}')
+    print(f'Average {avg_field}: {total_tip_amount / total_lines}')
 
 
 if __name__ == '__main__':

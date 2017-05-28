@@ -86,7 +86,7 @@ Average tip_amount: 1.75066
 
 $ time python 1-asyncio.py
 Total lines: 10906858
-Average tip amount: 1.7506631158122512
+Average tip_amount: 1.7506631158122512
 python 1-asyncio.py  86.95s user 4.76s system 48% cpu 3:08.65 total
 
 $ time python 2-asyncio-ranges.py
