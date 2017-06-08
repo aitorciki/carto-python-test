@@ -52,8 +52,8 @@ async def get_file_size(_url):
     writer.close()
 
 def parse_content_range(value):
-    bytes = value.split()[1]
-    range_ = bytes.split('/')[0]
+    bytes_ = value.split()[1]
+    range_ = bytes_.split('/')[0]
     from_, to = range_.split('-')
     return int(to) - int(from_)
 
