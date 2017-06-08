@@ -204,7 +204,10 @@ async def execute(url, concurrency, avg_field):
         sys.stderr.write('No content length found :(')
         sys.exit(1)
     range_width = math.ceil(size / concurrency)
-    byte_ranges = [[i, i + range_width] for i in range(0, size, range_width + 1)]
+    byte_ranges = [
+        [i, i + range_width if i + range_width < size else '']
+        for i in range(0, size, range_width + 1)
+    ]
 
     # Create a lines producer per bytes range.
     producers = [produce_rows(url, byte_range) for byte_range in byte_ranges]
